@@ -7,9 +7,9 @@ app.use(cors());
 app.use(express.json());
 
 const balances = {
-  "0x1": 100,
-  "0x2": 50,
-  "0x3": 75,
+  "5e2552a3ec9caddd398008d6aa9bb9f975a93250": 100,
+  "9688509f1832b3fbaba9df3e1d489e6945120fe0": 50,
+  "6e05462c1f54c00dfdafd65b31b9c6c294d19fc7": 75,
 };
 
 app.get("/balance/:address", (req, res) => {
@@ -19,10 +19,14 @@ app.get("/balance/:address", (req, res) => {
 });
 
 app.post("/send", (req, res) => {
-  const { sender, recipient, amount } = req.body;
+  const { sender, recipient, amount, recoveryPublicKey } = req.body;
 
   setInitialBalance(sender);
   setInitialBalance(recipient);
+
+  if (balances[recoveryPublicKey] === null) {
+    res.status(400).send({ message: "Invalid signature please try again!" });
+  }
 
   if (balances[sender] < amount) {
     res.status(400).send({ message: "Not enough funds!" });
@@ -39,6 +43,6 @@ app.listen(port, () => {
 
 function setInitialBalance(address) {
   if (!balances[address]) {
-    balances[address] = 0;
+    balances[address] = null;
   }
 }
